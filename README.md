@@ -22,3 +22,17 @@ If the server is already running, stop it with `Ctrl+C`, set the variables, and
 start it again. The `/` endpoint reports whether the database connection
 succeeded. Connection failures are logged to the PHP server console; the
 response does not expose credentials or internal database errors.
+
+## WhatsApp gateway database
+
+The WhatsApp gateway uses the existing `talsinet_hub` database and
+`applications` table. After applying `001_initial_schema.sql`, apply the
+gateway tables with:
+
+```powershell
+Get-Content .\database\migrations\002_whatsapp_gateway_schema.sql |
+    mysql -u root -p talsinet_hub
+```
+
+Set the `WHATSAPP_META_*` values in the root `.env` file using the names in
+`.env.example`. Keep Meta credentials private and do not commit `.env`.
