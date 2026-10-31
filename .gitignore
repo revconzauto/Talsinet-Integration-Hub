@@ -4,7 +4,7 @@
 .env.*
 !.env.example
 
-# Dependencies
+# Composer Dependencies
 /vendor/
 
 # Local logs and temporary files
