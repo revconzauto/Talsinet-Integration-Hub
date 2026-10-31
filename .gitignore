@@ -1,0 +1,22 @@
+
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies
+/vendor/
+
+# Local logs and temporary files
+/storage/*
+!/storage/.gitkeep
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test and debug output
+.phpunit.cache/
+coverage/
