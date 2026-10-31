@@ -1,11 +1,11 @@
 {
     "name": "autoc/talsinet-integration-hub",
-    "description": "Project",
+    "description": "WhatsApp Messaging",
     "type": "project",
     "license": "proprietary",
     "autoload": {
         "psr-4": {
-            "Autoc\\TalsinetIntegrationHub\\": "src/"
+            "Talsinet\\IntegrationHub\\": "src/"
         }
     },
     "authors": [
