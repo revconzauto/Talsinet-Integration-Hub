@@ -1,16 +1,17 @@
 {
-    "name": "talsinet/integration-hub",
-    "description": "WhatsApp Messaging",
+    "name": "autoc/talsinet-integration-hub",
+    "description": "Project",
     "type": "project",
     "license": "proprietary",
     "autoload": {
         "psr-4": {
-            "Talsinet\\IntegrationHub\\": "src/"
+            "Autoc\\TalsinetIntegrationHub\\": "src/"
         }
     },
     "authors": [
         {
-            "name": "Talsinet"
+            "name": "Sibusiso Dlamini",
+            "email": "auto@revcon.digital"
         }
     ],
     "require": {}
