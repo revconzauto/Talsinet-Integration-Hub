@@ -6,7 +6,7 @@ namespace Talsinet\IntegrationHub\Providers;
 
 interface PaymentProviderInterface
 {
-    public function requestPayment(
+    public function initiatePayment(
         string $reference,
         string $phoneNumber,
         float $amount,
@@ -16,4 +16,9 @@ interface PaymentProviderInterface
     public function checkPaymentStatus(
         string $providerReference
     ): array;
+
+    public function verifyWebhook(
+        array $headers,
+        string $payload
+    ): bool;
 }

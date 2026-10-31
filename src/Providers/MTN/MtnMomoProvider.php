@@ -8,17 +8,24 @@ use Talsinet\IntegrationHub\Providers\PaymentProviderInterface;
 
 final class MtnMomoProvider implements PaymentProviderInterface
 {
-    public function requestPayment(
+    public function initiatePayment(
         string $reference,
         string $phoneNumber,
         float $amount,
         string $currency
     ): array {
+        /*
+         * MTN MoMo API integration will be implemented
+         * once production/sandbox credentials are available.
+         */
+
         return [
+            'provider' => 'MTN_MOMO',
             'status' => 'not_configured',
-            'provider' => 'mtn_momo',
             'reference' => $reference,
-            'message' => 'MTN MoMo credentials are not configured.',
+            'provider_reference' => null,
+            'amount' => $amount,
+            'currency' => $currency,
         ];
     }
 
@@ -26,9 +33,21 @@ final class MtnMomoProvider implements PaymentProviderInterface
         string $providerReference
     ): array {
         return [
+            'provider' => 'MTN_MOMO',
             'status' => 'not_configured',
-            'provider' => 'mtn_momo',
             'provider_reference' => $providerReference,
         ];
+    }
+
+    public function verifyWebhook(
+        array $headers,
+        string $payload
+    ): bool {
+        /*
+         * Implement using the exact authentication/
+         * signature mechanism supplied by MTN.
+         */
+
+        return false;
     }
 }
