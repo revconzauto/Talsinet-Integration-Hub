@@ -14,5 +14,7 @@
             "email": "auto@revcon.digital"
         }
     ],
-    "require": {}
+    "require": {
+        "vlucas/phpdotenv": "^5.8"
+    }
 }
