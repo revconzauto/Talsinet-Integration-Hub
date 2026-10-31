@@ -2,6 +2,7 @@
     "name": "talsinet/integration-hub",
     "description": "WhatsApp Messaging",
     "type": "project",
+    "license": "proprietary",
     "autoload": {
         "psr-4": {
             "Talsinet\\IntegrationHub\\": "src/"
