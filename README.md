@@ -98,5 +98,20 @@ php .\bin\process-whatsapp-webhooks.php
 ```
 
 Incoming messages are available in the owning application's inbox after the
-worker processes the event. Sent, delivered, read, and failed Meta statuses are
-stored in `whatsapp_message_statuses`.
+worker processes the event. SecurePhone-channel messages of type `text`,
+`image`, and `document` are also posted individually to
+`SECUREPHONE_API_BASE_URL/api/v1/integrations/talsinet/whatsapp/messages` with
+`Authorization: Bearer TALSINET_API_KEY`. Meta's `document` type is sent as
+`documents`, as required by the SecurePhone integration. SecurePhone
+deduplicates retries using the original Meta message ID. Other message types
+remain stored in the Hub inbox but are not forwarded to SecurePhone.
+
+The Hub readiness endpoint `GET /ready` checks its database and queries
+`SECUREPHONE_API_BASE_URL/api/v1/integrations/talsinet` with the same bearer
+credential. It relays SecurePhone's readiness response and reports HTTP 503 if
+the database or SecurePhone endpoint is unavailable. Set
+`SECUREPHONE_API_BASE_URL=https://track.revcon.digital` and populate
+`TALSINET_API_KEY` in the local `.env`; do not commit the key.
+
+Sent, delivered, read, and failed Meta statuses are stored in
+`whatsapp_message_statuses`.

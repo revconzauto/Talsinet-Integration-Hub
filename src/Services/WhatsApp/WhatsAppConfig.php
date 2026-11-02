@@ -78,6 +78,18 @@ final class WhatsAppConfig
         return $version;
     }
 
+    public function securePhoneBaseUrl(): string
+    {
+        $baseUrl = rtrim($this->require('SECUREPHONE_API_BASE_URL'), '/');
+        $scheme = parse_url($baseUrl, PHP_URL_SCHEME);
+
+        if (filter_var($baseUrl, FILTER_VALIDATE_URL) === false || $scheme !== 'https') {
+            throw new RuntimeException('SECUREPHONE_API_BASE_URL must be an HTTPS URL.');
+        }
+
+        return $baseUrl;
+    }
+
     public function application(string $channelCode): array
     {
         if (!isset(self::APPLICATIONS[$channelCode])) {

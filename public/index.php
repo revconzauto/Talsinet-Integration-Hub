@@ -9,6 +9,7 @@ use Talsinet\IntegrationHub\Http\Controllers\WhatsAppMessageController;
 use Talsinet\IntegrationHub\Http\Middleware\ApiKeyMiddleware;
 use Talsinet\IntegrationHub\Http\Responses\JsonResponse;
 use Talsinet\IntegrationHub\Providers\Meta\MetaGraphClient;
+use Talsinet\IntegrationHub\Providers\SecurePhone\SecurePhoneClient;
 use Talsinet\IntegrationHub\Services\WhatsApp\WhatsAppConfig;
 
 require_once dirname(__DIR__) . '/src/bootstrap.php';
@@ -41,6 +42,52 @@ if ($path === '/' || $path === '/health') {
         ],
         'timestamp' => gmdate('c'),
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($path === '/ready') {
+    if ($method !== 'GET') {
+        header('Allow: GET');
+        JsonResponse::send(['error' => 'Method not allowed.'], 405);
+        exit;
+    }
+
+    $databaseStatus = 'connected';
+
+    try {
+        Database::connection()->query('SELECT 1');
+    } catch (Throwable $exception) {
+        error_log('Readiness database check failed: ' . $exception->getMessage());
+        $databaseStatus = 'unavailable';
+    }
+
+    if ($databaseStatus !== 'connected') {
+        JsonResponse::send([
+            'status' => 'degraded',
+            'database' => $databaseStatus,
+            'securephone' => 'not_checked',
+        ], 503);
+        exit;
+    }
+
+    try {
+        $config = new WhatsAppConfig();
+        $securePhoneReadiness = (new SecurePhoneClient($config))->readiness();
+
+        JsonResponse::send([
+            'status' => 'reachable',
+            'database' => 'connected',
+            'securephone' => $securePhoneReadiness,
+        ]);
+    } catch (Throwable $exception) {
+        error_log('SecurePhone readiness check failed: ' . $exception->getMessage());
+        JsonResponse::send([
+            'status' => 'degraded',
+            'database' => 'connected',
+            'securephone' => 'unavailable',
+        ], 503);
+    }
+
     exit;
 }
 

@@ -8,12 +8,15 @@ use DateTimeImmutable;
 use DateTimeZone;
 use PDO;
 use RuntimeException;
+use Talsinet\IntegrationHub\Providers\SecurePhone\SecurePhoneClient;
 use Throwable;
 
 final class WhatsAppWebhookProcessor
 {
-    public function __construct(private PDO $database)
-    {
+    public function __construct(
+        private PDO $database,
+        private SecurePhoneClient $securePhone
+    ) {
     }
 
     public function processPending(int $limit = 100): array
@@ -121,14 +124,30 @@ final class WhatsAppWebhookProcessor
                     throw new RuntimeException('Webhook event does not identify a phone number.');
                 }
 
-                $channelId = $this->findActiveChannel($phoneNumberId);
+                $channel = $this->findActiveChannel($phoneNumberId);
 
-                if ($channelId === null) {
+                if ($channel === null) {
                     throw new RuntimeException('Webhook phone number is not assigned to an active application channel.');
                 }
 
                 foreach (($value['messages'] ?? []) as $message) {
-                    $this->storeInboundMessage($channelId, $message, $eventId);
+                    if (!is_array($message)) {
+                        throw new RuntimeException('Webhook contains an invalid inbound message.');
+                    }
+
+                    $this->storeInboundMessage((int) $channel['id'], $message, $eventId);
+
+                    if ($channel['application_code'] === 'SECUREPHONE') {
+                        if ($this->isSupportedSecurePhoneType($message['type'] ?? null)) {
+                            $this->securePhone->forwardWhatsAppMessage($message);
+                        } else {
+                            error_log(sprintf(
+                                'SecurePhone message %s has unsupported type %s; it was stored but not forwarded.',
+                                (string) ($message['id'] ?? 'unknown'),
+                                (string) ($message['type'] ?? 'unknown')
+                            ));
+                        }
+                    }
                 }
 
                 foreach (($value['statuses'] ?? []) as $status) {
@@ -138,23 +157,35 @@ final class WhatsAppWebhookProcessor
         }
     }
 
-    private function findActiveChannel(string $phoneNumberId): ?int
+    private function findActiveChannel(string $phoneNumberId): ?array
     {
         $statement = $this->database->prepare(
-            'SELECT ac.id
+            'SELECT ac.id, a.application_code
              FROM application_channels ac
+             INNER JOIN applications a ON a.id = ac.application_id
              INNER JOIN phone_numbers pn ON pn.id = ac.phone_number_id
              INNER JOIN whatsapp_business_accounts waba ON waba.id = pn.business_account_id
              WHERE pn.meta_phone_number_id = :phone_number_id
                AND ac.status = \'active\'
+               AND a.status = \'active\'
                AND pn.status = \'active\'
                AND waba.status = \'active\'
              LIMIT 1'
         );
         $statement->execute(['phone_number_id' => $phoneNumberId]);
-        $channelId = $statement->fetchColumn();
+        $channel = $statement->fetch();
 
-        return $channelId === false ? null : (int) $channelId;
+        return is_array($channel)
+            ? [
+                'id' => (int) $channel['id'],
+                'application_code' => (string) $channel['application_code'],
+            ]
+            : null;
+    }
+
+    private function isSupportedSecurePhoneType(mixed $type): bool
+    {
+        return in_array($type, ['text', 'image', 'document', 'documents'], true);
     }
 
     private function storeInboundMessage(int $channelId, array $message, int $eventId): void

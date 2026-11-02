@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Talsinet\IntegrationHub\Database\Database;
+use Talsinet\IntegrationHub\Providers\SecurePhone\SecurePhoneClient;
+use Talsinet\IntegrationHub\Services\WhatsApp\WhatsAppConfig;
 use Talsinet\IntegrationHub\Services\WhatsApp\WhatsAppWebhookProcessor;
 
 require_once dirname(__DIR__) . '/src/bootstrap.php';
@@ -14,7 +16,11 @@ try {
         throw new InvalidArgumentException('Limit must be a positive integer.');
     }
 
-    $result = (new WhatsAppWebhookProcessor(Database::connection()))->processPending($limit);
+    $config = new WhatsAppConfig();
+    $result = (new WhatsAppWebhookProcessor(
+        Database::connection(),
+        new SecurePhoneClient($config)
+    ))->processPending($limit);
     fwrite(STDOUT, json_encode($result, JSON_THROW_ON_ERROR) . "\n");
 
     if ($result['failed'] > 0) {

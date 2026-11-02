@@ -72,6 +72,8 @@ final class MetaGraphClient
                 'content' => $payload ?? '',
                 'timeout' => 15,
                 'ignore_errors' => true,
+                'follow_location' => 0,
+                'max_redirects' => 0,
             ],
         ]);
         set_error_handler(static function (int $severity, string $message): bool {
